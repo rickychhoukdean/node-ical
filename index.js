@@ -1,4 +1,4 @@
-const request = require('request');
+const axios = require('axios');
 const fs = require('fs');
 
 const ical = require('./ical.js');
@@ -97,25 +97,21 @@ const autodetect = {};
  */
 async.fromURL = function(url, opts, cb) {
     return promiseCallback(function(resolve, reject) {
-        request(url, opts, function(err, res, data) {
-            if (err) {
-                reject(err);
-                return;
-            }
-            // if (r.statusCode !== 200) {
-            // all ok status codes should be accepted (any 2XX code)
-            if (Math.floor(res.statusCode / 100) !== 2) {
-                reject(new Error(`${res.statusCode} ${res.statusMessage}`));
-                return;
-            }
-            ical.parseICS(data, function(err, ics) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(ics);
-            });
-        });
+axios.get(url)
+  .then(function (response) {
+    // handle success
+    ical.parseICS(response.data, function(err, ics) {
+        if (err) {
+            reject(err);
+            return;
+        }
+        resolve(ics)
+    });  })
+  .catch(function (error) {
+    // handle error
+    reject(error);
+    return; 
+ })
     }, cb);
 };
 
